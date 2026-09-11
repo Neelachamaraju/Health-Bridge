@@ -74,6 +74,7 @@ Health-Bridge is a functional web prototype designed to bridge messy real-world 
 
 ---
 
+
 ### AUTHENTICATION & LOGIN
 18. **Dual-Role Sign In / Login Modal**:
     - Accessible via header pill (`🔑 Login / Switch`).
@@ -85,4 +86,6 @@ Health-Bridge is a functional web prototype designed to bridge messy real-world 
     - Persists session and updates user badge and role dynamically.
 
 ---
+
+=======
 
