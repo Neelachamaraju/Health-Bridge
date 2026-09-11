@@ -43,14 +43,33 @@
                     </div>
                 </a>
 
-                <!-- Role Persona Switcher (Patient vs Doctor) -->
-                <div class="role-switch-container" role="group" aria-label="User Persona Switcher">
-                    <button id="rolePatientBtn" class="role-btn active" onclick="switchRole('patient')">
-                        <span>🧑‍🌾</span> Patient / ASHA Mode
-                    </button>
-                    <button id="roleDoctorBtn" class="role-btn doctor" onclick="switchRole('doctor')">
-                        <span>🩺</span> Doctor Mode (Dr. Verma)
-                    </button>
+                <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                    <!-- User Auth Pill -->
+                    <div id="userAuthPill" class="user-auth-pill">
+                        <div class="avatar" id="headerUserAvatar" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                            RK</div>
+                        <div class="user-info-text">
+                            <span id="headerUserName" style="font-weight: 700; font-size: 0.82rem;">Ramesh Kumar</span>
+                            <span id="headerUserRoleBadge" class="badge badge-department"
+                                style="font-size: 0.65rem; padding: 0.1rem 0.35rem;">Patient</span>
+                        </div>
+                        <button class="btn-auth-switch" onclick="openAuthModal()" title="Switch User or Login">
+                            <span>🔑</span> Login / Switch
+                        </button>
+                        <button class="btn-logout" onclick="logoutUser()" title="Log out">
+                            ✕
+                        </button>
+                    </div>
+
+                    <!-- Role Persona Switcher (Patient vs Doctor) -->
+                    <div class="role-switch-container" role="group" aria-label="User Persona Switcher">
+                        <button id="rolePatientBtn" class="role-btn active" onclick="switchRole('patient')">
+                            <span>🧑‍🌾</span> Patient / ASHA Mode
+                        </button>
+                        <button id="roleDoctorBtn" class="role-btn doctor" onclick="switchRole('doctor')">
+                            <span>🩺</span> Doctor Mode (<span id="switcherDocName">Dr. Verma</span>)
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -94,6 +113,11 @@
                 <li class="nav-tab-item">
                     <button class="nav-tab-btn" data-tab="tabCmeTracker" onclick="switchTab('tabCmeTracker')">
                         <span>🎓</span> CME Credit Tracker (24.5 / 30)
+                    </button>
+                </li>
+                <li class="nav-tab-item">
+                    <button class="nav-tab-btn" data-tab="tabDoctorProfile" onclick="switchTab('tabDoctorProfile')">
+                        <span>👤</span> My Profile & Credentials
                     </button>
                 </li>
                 <li class="nav-tab-item">
@@ -433,6 +457,15 @@
                 </div>
             </div>
 
+            <!-- ================================================================= -->
+            <!-- TAB 7: Doctor Profile Management Page (Doctor Mode)               -->
+            <!-- ================================================================= -->
+            <div id="tabDoctorProfile" class="tab-pane">
+                <div id="doctorProfileEditorContainer">
+                    <!-- Injected via renderDoctorProfileEditor() -->
+                </div>
+            </div>
+
         </div>
     </main>
 
@@ -606,6 +639,118 @@
                 <button class="btn btn-secondary"
                     onclick="document.getElementById('doctorProfileModal').classList.remove('open')">Close</button>
                 <button class="btn btn-primary" onclick="window.print()">🖨️ Print CME Certificate</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL: LOGIN & AUTHENTICATION MODAL                                   -->
+    <!-- ===================================================================== -->
+    <div id="authModal" class="modal-backdrop" role="dialog" aria-modal="true">
+        <div class="modal-dialog" style="max-width: 520px;">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 1.4rem;">🔐</span>
+                    <div>
+                        <h3 style="font-size: 1.15rem; font-weight: 700;">Health-Bridge Sign In</h3>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Access Rural Health Triage &
+                            Tele-Medicine Bridge</div>
+                    </div>
+                </div>
+                <button onclick="closeAuthModal()"
+                    style="background: none; border: none; font-size: 1.25rem; cursor: pointer;">✕</button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Auth Role Tabs -->
+                <div class="auth-tabs" role="tablist">
+                    <button id="authTabPatientBtn" class="auth-tab-btn active" onclick="switchAuthTab('patient')">
+                        🧑‍🌾 Patient / ASHA Worker
+                    </button>
+                    <button id="authTabDoctorBtn" class="auth-tab-btn" onclick="switchAuthTab('doctor')">
+                        🩺 Doctor / Specialist
+                    </button>
+                </div>
+
+                <!-- Patient Login Form -->
+                <form id="patientLoginForm" onsubmit="handlePatientLogin(event)">
+                    <div class="auth-form-group">
+                        <label class="auth-form-label" for="loginAbhaId">ABHA ID or Mobile Number</label>
+                        <input type="text" id="loginAbhaId" class="auth-form-input"
+                            placeholder="e.g. ABHA-91-4432-8819-01 or 9845012345" value="ABHA-91-4432-8819-01" required>
+                    </div>
+                    <div class="auth-form-group">
+                        <label class="auth-form-label" for="loginPatientName">Patient Full Name</label>
+                        <input type="text" id="loginPatientName" class="auth-form-input" placeholder="e.g. Ramesh Kumar"
+                            value="Ramesh Kumar" required>
+                    </div>
+                    <div class="auth-form-group">
+                        <label class="auth-form-label" for="loginPatientVillage">Village / District</label>
+                        <input type="text" id="loginPatientVillage" class="auth-form-input"
+                            placeholder="e.g. Shivanasamudra, Mandya District"
+                            value="Shivanasamudra, Mandya District, Karnataka">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full"
+                        style="padding: 0.75rem; font-size: 0.95rem;">
+                        Sign In as Patient / Health Worker
+                    </button>
+                </form>
+
+                <!-- Doctor Login Form -->
+                <form id="doctorLoginForm" onsubmit="handleDoctorLogin(event)" style="display: none;">
+                    <div class="auth-form-group">
+                        <label class="auth-form-label" for="loginDoctorNmc">NMC Registration Number</label>
+                        <input type="text" id="loginDoctorNmc" class="auth-form-input" placeholder="e.g. NMC-KA-84920"
+                            value="NMC-KA-84920" required>
+                    </div>
+                    <div class="auth-form-group">
+                        <label class="auth-form-label" for="loginDoctorName">Doctor Full Name</label>
+                        <input type="text" id="loginDoctorName" class="auth-form-input"
+                            placeholder="e.g. Dr. Rajesh Verma" value="Dr. Rajesh Verma" required>
+                    </div>
+                    <div class="form-grid-2col" style="margin-bottom: 1rem;">
+                        <div>
+                            <label class="auth-form-label" for="loginDoctorDept">Specialization</label>
+                            <select id="loginDoctorDept" class="auth-form-select">
+                                <option value="Cardiology">Cardiology</option>
+                                <option value="Pulmonology">Pulmonology</option>
+                                <option value="General Medicine">General Medicine</option>
+                                <option value="Pediatrics">Pediatrics</option>
+                                <option value="Obstetrics & Gynecology">Obstetrics & Gynecology</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="auth-form-label" for="loginDoctorCouncil">State Council</label>
+                            <select id="loginDoctorCouncil" class="auth-form-select">
+                                <option value="Karnataka Medical Council">Karnataka Medical Council</option>
+                                <option value="Tamil Nadu Medical Council">Tamil Nadu Medical Council</option>
+                                <option value="Delhi Medical Council">Delhi Medical Council</option>
+                                <option value="Maharashtra Medical Council">Maharashtra Medical Council</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full"
+                        style="padding: 0.75rem; font-size: 0.95rem;">
+                        Sign In as Verified Doctor (NMC Portal)
+                    </button>
+                </form>
+
+                <!-- Quick One-Click Demo Logins -->
+                <div class="auth-demo-box">
+                    <div class="auth-demo-title">⚡ Instant 1-Click Demo Profiles</div>
+                    <button type="button" class="auth-demo-btn" onclick="quickDemoLogin('patient')">
+                        <span>🧑‍🌾 <strong>Ramesh Kumar</strong> (Patient / Mandya District)</span>
+                        <span class="badge badge-department">Patient</span>
+                    </button>
+                    <button type="button" class="auth-demo-btn" onclick="quickDemoLogin('doctor-rajesh')">
+                        <span>🩺 <strong>Dr. Rajesh Verma</strong> (MD, DM Cardiology • NMC Verified)</span>
+                        <span class="badge badge-verified">Doctor</span>
+                    </button>
+                    <button type="button" class="auth-demo-btn" onclick="quickDemoLogin('doctor-ananya')">
+                        <span>🫁 <strong>Dr. Ananya Sen</strong> (MD Pulmonology • Safdarjung)</span>
+                        <span class="badge badge-verified">Doctor</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
