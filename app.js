@@ -12,6 +12,15 @@ const STORAGE_KEY = 'health_bridge_state_v1';
 const defaultState = {
   currentRole: 'patient', // 'patient' | 'doctor'
   selectedLang: 'en',     // 'en' | 'hi' | 'ta' | 'kn'
+  isLoggedIn: true,
+  currentUser: {
+    id: 'user-pat-1',
+    name: 'Ramesh Kumar',
+    role: 'patient',
+    identifier: 'ABHA-91-4432-8819-01',
+    village: 'Shivanasamudra, Mandya District',
+    avatar: 'RK'
+  },
   patientProfile: {
     name: 'Ramesh Kumar',
     age: 58,
@@ -65,13 +74,17 @@ const defaultState = {
     department: 'Cardiology',
     hospital: 'Victoria Hospital & Apex Tele-Triage Hub, Bengaluru',
     experience: '14 Years',
+    dutyStatus: 'On-Duty Emergency Tele-Triage',
+    avgResponseTime: '< 5 min',
+    contactPhone: '+91 98450 11080',
+    contactEmail: 'r.verma@telemed.karnataka.gov.in',
     avatar: 'RV',
+    bio: 'Senior Interventional Cardiologist & Professor of Cardiology at Victoria Hospital. Passionate about rural telemedicine, reducing golden-hour referral latency for STEMI, and strengthening primary healthcare tele-triage capacity across taluk hospitals.',
     cmeCredits: 24.5,
     cmeTarget: 30.0,
     cmeCycleEnd: '31 Dec 2026',
     patientsHelped: 428,
     emergencyResolved: 39,
-    avgResponseTime: '4.2 mins',
     diagnosticAgreement: '98.4%',
     cmeHistory: [
       { date: '10 Sep 2026', caseId: 'CASE-7821', action: 'Verified Rural STEMI Referral', credits: '+1.0' },
@@ -878,12 +891,214 @@ function updateTtsButton(speaking) {
 }
 
 // ============================================================================
-// 7. UI Rendering Functions
+// 7. Authentication & User Session Management
+// ============================================================================
+
+function openAuthModal() {
+  const modal = document.getElementById('authModal');
+  if (modal) {
+    modal.classList.add('open');
+    switchAuthTab(appState.currentRole || 'patient');
+  }
+}
+
+function closeAuthModal() {
+  const modal = document.getElementById('authModal');
+  if (modal) modal.classList.remove('open');
+}
+
+function switchAuthTab(role) {
+  const patBtn = document.getElementById('authTabPatientBtn');
+  const docBtn = document.getElementById('authTabDoctorBtn');
+  const patForm = document.getElementById('patientLoginForm');
+  const docForm = document.getElementById('doctorLoginForm');
+
+  if (role === 'patient') {
+    if (patBtn) patBtn.classList.add('active');
+    if (docBtn) docBtn.classList.remove('active');
+    if (patForm) patForm.style.display = 'block';
+    if (docForm) docForm.style.display = 'none';
+  } else {
+    if (patBtn) patBtn.classList.remove('active');
+    if (docBtn) docBtn.classList.add('active');
+    if (patForm) patForm.style.display = 'none';
+    if (docForm) docForm.style.display = 'block';
+  }
+}
+
+function handlePatientLogin(event) {
+  if (event) event.preventDefault();
+  const name = document.getElementById('loginPatientName')?.value.trim() || appState.patientProfile.name;
+  const abhaId = document.getElementById('loginAbhaId')?.value.trim() || appState.patientProfile.abhaId;
+  const village = document.getElementById('loginPatientVillage')?.value.trim() || appState.patientProfile.village;
+
+  appState.patientProfile.name = name;
+  appState.patientProfile.abhaId = abhaId;
+  appState.patientProfile.village = village;
+
+  appState.currentUser = {
+    id: 'user-pat-' + Date.now(),
+    name: name,
+    role: 'patient',
+    identifier: abhaId,
+    village: village,
+    avatar: name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase() || 'PT'
+  };
+  appState.isLoggedIn = true;
+  appState.currentRole = 'patient';
+
+  saveState();
+  updateHeaderAuthUI();
+  switchRole('patient');
+  closeAuthModal();
+  renderPatientHistory();
+  showToast(`Welcome back, ${name}! Signed in with ABHA ID.`, 'success');
+}
+
+function handleDoctorLogin(event) {
+  if (event) event.preventDefault();
+  const name = document.getElementById('loginDoctorName')?.value.trim() || appState.doctorProfile.name;
+  const nmcReg = document.getElementById('loginDoctorNmc')?.value.trim() || appState.doctorProfile.nmcReg;
+  const dept = document.getElementById('loginDoctorDept')?.value || appState.doctorProfile.department;
+  const council = document.getElementById('loginDoctorCouncil')?.value || appState.doctorProfile.stateCouncil;
+
+  appState.doctorProfile.name = name;
+  appState.doctorProfile.nmcReg = nmcReg;
+  appState.doctorProfile.department = dept;
+  appState.doctorProfile.stateCouncil = council;
+
+  // Sync with availableDoctors doc-1
+  const docInList = appState.availableDoctors.find(d => d.id === 'doc-1');
+  if (docInList) {
+    docInList.name = name;
+    docInList.nmcId = nmcReg;
+    docInList.dept = dept;
+  }
+
+  appState.currentUser = {
+    id: 'user-doc-' + Date.now(),
+    name: name,
+    role: 'doctor',
+    identifier: nmcReg,
+    department: dept,
+    avatar: appState.doctorProfile.avatar || 'RV'
+  };
+  appState.isLoggedIn = true;
+  appState.currentRole = 'doctor';
+
+  saveState();
+  updateHeaderAuthUI();
+  switchRole('doctor');
+  closeAuthModal();
+  renderDoctorDashboard();
+  renderDoctorProfileEditor();
+  showToast(`Welcome to Rural Tele-Triage, ${name}! (NMC Verified)`, 'success');
+}
+
+function quickDemoLogin(demoKey) {
+  if (demoKey === 'patient') {
+    const pName = document.getElementById('loginPatientName');
+    const pAbha = document.getElementById('loginAbhaId');
+    const pVil = document.getElementById('loginPatientVillage');
+    if (pName) pName.value = 'Ramesh Kumar';
+    if (pAbha) pAbha.value = 'ABHA-91-4432-8819-01';
+    if (pVil) pVil.value = 'Shivanasamudra, Mandya District, Karnataka';
+    handlePatientLogin();
+  } else if (demoKey === 'doctor-rajesh') {
+    const dName = document.getElementById('loginDoctorName');
+    const dNmc = document.getElementById('loginDoctorNmc');
+    const dDept = document.getElementById('loginDoctorDept');
+    const dCoun = document.getElementById('loginDoctorCouncil');
+    if (dName) dName.value = 'Dr. Rajesh Verma';
+    if (dNmc) dNmc.value = 'NMC-KA-84920';
+    if (dDept) dDept.value = 'Cardiology';
+    if (dCoun) dCoun.value = 'Karnataka Medical Council';
+    handleDoctorLogin();
+  } else if (demoKey === 'doctor-ananya') {
+    const dName = document.getElementById('loginDoctorName');
+    const dNmc = document.getElementById('loginDoctorNmc');
+    const dDept = document.getElementById('loginDoctorDept');
+    const dCoun = document.getElementById('loginDoctorCouncil');
+    if (dName) dName.value = 'Dr. Ananya Sen';
+    if (dNmc) dNmc.value = 'NMC-DL-33412';
+    if (dDept) dDept.value = 'Pulmonology';
+    if (dCoun) dCoun.value = 'Delhi Medical Council';
+    handleDoctorLogin();
+  }
+}
+
+function logoutUser() {
+  appState.isLoggedIn = false;
+  saveState();
+  updateHeaderAuthUI();
+  openAuthModal();
+  showToast('Logged out. Please choose an account to sign in.', 'info');
+}
+
+function updateHeaderAuthUI() {
+  const avatarEl = document.getElementById('headerUserAvatar');
+  const nameEl = document.getElementById('headerUserName');
+  const badgeEl = document.getElementById('headerUserRoleBadge');
+  const switcherDocName = document.getElementById('switcherDocName');
+
+  if (switcherDocName && appState.doctorProfile) {
+    const parts = appState.doctorProfile.name.split(' ');
+    const docShort = parts[1] || parts[0];
+    switcherDocName.innerText = `Dr. ${docShort}`;
+  }
+
+  if (!appState.currentUser) {
+    appState.currentUser = {
+      name: appState.currentRole === 'doctor' ? appState.doctorProfile.name : appState.patientProfile.name,
+      role: appState.currentRole,
+      avatar: appState.currentRole === 'doctor' ? (appState.doctorProfile.avatar || 'RV') : 'RK',
+      identifier: appState.currentRole === 'doctor' ? appState.doctorProfile.nmcReg : appState.patientProfile.abhaId
+    };
+  }
+
+  if (avatarEl) {
+    avatarEl.innerText = appState.currentUser.avatar || (appState.currentUser.role === 'doctor' ? 'DR' : 'PT');
+    avatarEl.className = `avatar ${appState.currentUser.role === 'doctor' ? 'doctor' : ''}`;
+  }
+  if (nameEl) {
+    nameEl.innerText = appState.currentUser.name || (appState.currentUser.role === 'doctor' ? 'Verified Clinician' : 'Rural Patient');
+  }
+  if (badgeEl) {
+    if (appState.currentUser.role === 'doctor') {
+      badgeEl.className = 'badge badge-verified';
+      badgeEl.innerText = '✓ Verified Doctor';
+    } else {
+      badgeEl.className = 'badge badge-department';
+      badgeEl.innerText = 'Patient / ASHA';
+    }
+  }
+}
+
+// ============================================================================
+// 8. UI Rendering Functions
 // ============================================================================
 
 function switchRole(newRole) {
   appState.currentRole = newRole;
+
+  if (newRole === 'doctor' && appState.currentUser && appState.currentUser.role !== 'doctor') {
+    appState.currentUser = {
+      name: appState.doctorProfile.name,
+      role: 'doctor',
+      identifier: appState.doctorProfile.nmcReg,
+      avatar: appState.doctorProfile.avatar || 'RV'
+    };
+  } else if (newRole === 'patient' && appState.currentUser && appState.currentUser.role !== 'patient') {
+    appState.currentUser = {
+      name: appState.patientProfile.name,
+      role: 'patient',
+      identifier: appState.patientProfile.abhaId,
+      avatar: 'RK'
+    };
+  }
+
   saveState();
+  updateHeaderAuthUI();
 
   const patientRoleBtn = document.getElementById('rolePatientBtn');
   const doctorRoleBtn = document.getElementById('roleDoctorBtn');
@@ -891,19 +1106,19 @@ function switchRole(newRole) {
   const doctorNavTabs = document.getElementById('doctorNavTabs');
 
   if (newRole === 'patient') {
-    patientRoleBtn.classList.add('active');
-    doctorRoleBtn.classList.remove('active');
-    patientNavTabs.style.display = 'flex';
-    doctorNavTabs.style.display = 'none';
+    if (patientRoleBtn) patientRoleBtn.classList.add('active');
+    if (doctorRoleBtn) doctorRoleBtn.classList.remove('active');
+    if (patientNavTabs) patientNavTabs.style.display = 'flex';
+    if (doctorNavTabs) doctorNavTabs.style.display = 'none';
     switchTab('tabTriage');
     showToast('Switched to Patient & ASHA Health Worker Mode', 'info');
   } else {
-    patientRoleBtn.classList.remove('active');
-    doctorRoleBtn.classList.add('active');
-    patientNavTabs.style.display = 'none';
-    doctorNavTabs.style.display = 'flex';
+    if (patientRoleBtn) patientRoleBtn.classList.remove('active');
+    if (doctorRoleBtn) doctorRoleBtn.classList.add('active');
+    if (patientNavTabs) patientNavTabs.style.display = 'none';
+    if (doctorNavTabs) doctorNavTabs.style.display = 'flex';
     switchTab('tabDoctorDashboard');
-    showToast('Switched to Doctor Mode: Dr. Rajesh Verma (Cardiologist)', 'info');
+    showToast(`Switched to Doctor Mode: ${appState.doctorProfile.name}`, 'info');
   }
 }
 
@@ -924,6 +1139,7 @@ function switchTab(tabId) {
   if (tabId === 'tabCommunity') renderCommunityFeed();
   if (tabId === 'tabDoctorDashboard') renderDoctorDashboard();
   if (tabId === 'tabCmeTracker') renderCmeTracker();
+  if (tabId === 'tabDoctorProfile') renderDoctorProfileEditor();
 }
 
 function setLanguage(langKey) {
@@ -1684,6 +1900,332 @@ function renderCmeTracker() {
 }
 
 // ============================================================================
+// 11b. Doctor Profile & Credentials Editor (Doctor Mode)
+// ============================================================================
+
+function renderDoctorProfileEditor() {
+  const container = document.getElementById('doctorProfileEditorContainer');
+  if (!container) return;
+
+  const doc = appState.doctorProfile;
+  const avatars = ['RV', 'Dr', '🩺', '🫀', '🫁', '👶', '🏥'];
+
+  container.innerHTML = `
+    <div style="margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem;">
+      <div>
+        <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--text-main);">
+          Doctor Profile & Credentials Management
+        </h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+          Update your professional clinical credentials, NMC registration, hospital affiliation, and tele-triage availability.
+        </p>
+      </div>
+      <div style="display: flex; gap: 0.5rem;">
+        <button type="button" class="btn btn-secondary" onclick="openDoctorPublicProfile('doc-1')" style="font-size: 0.82rem;">
+          👁️ Preview Public Card
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="resetDoctorProfileToDefaults()" style="font-size: 0.82rem;">
+          ↺ Reset Defaults
+        </button>
+      </div>
+    </div>
+
+    <div class="profile-edit-grid">
+      <!-- LEFT: Profile Edit Form -->
+      <div class="card" style="margin-bottom: 0;">
+        <div class="card-header">
+          <div class="card-title">
+            <span>✏️</span> Edit Clinician Details
+          </div>
+          <span class="badge badge-verified">✓ NMC Live Sync</span>
+        </div>
+
+        <form id="doctorProfileForm" onsubmit="saveDoctorProfile(event)">
+          <!-- Avatar Picker -->
+          <div style="margin-bottom: 1rem;">
+            <label class="auth-form-label">Profile Avatar / Badge Initials</label>
+            <div class="avatar-selector-row">
+              ${avatars.map(av => `
+                <button type="button" class="avatar-choice-btn ${doc.avatar === av ? 'active' : ''}" onclick="selectProfileAvatar('${av}')" style="background: ${doc.avatar === av ? 'var(--primary)' : '#f1f5f9'}; color: ${doc.avatar === av ? '#fff' : '#334155'};">
+                  ${av}
+                </button>
+              `).join('')}
+              <input type="hidden" id="editDocAvatar" value="${doc.avatar || 'RV'}">
+            </div>
+          </div>
+
+          <!-- Name & Degrees -->
+          <div class="form-grid-2col" style="margin-bottom: 1rem;">
+            <div>
+              <label class="auth-form-label" for="editDocName">Full Name & Title *</label>
+              <input type="text" id="editDocName" class="auth-form-input" value="${doc.name}" oninput="updateProfilePreviewLive()" required placeholder="e.g. Dr. Rajesh Verma">
+            </div>
+            <div>
+              <label class="auth-form-label" for="editDocDegrees">Academic Qualifications *</label>
+              <input type="text" id="editDocDegrees" class="auth-form-input" value="${doc.credentials}" oninput="updateProfilePreviewLive()" required placeholder="e.g. MBBS, MD, DM">
+            </div>
+          </div>
+
+          <!-- Registration & Council -->
+          <div class="form-grid-2col" style="margin-bottom: 1rem;">
+            <div>
+              <label class="auth-form-label" for="editDocNmc">NMC / MCI Registration ID *</label>
+              <input type="text" id="editDocNmc" class="auth-form-input" value="${doc.nmcReg}" oninput="updateProfilePreviewLive()" required placeholder="e.g. NMC-KA-84920">
+            </div>
+            <div>
+              <label class="auth-form-label" for="editDocCouncil">State Medical Council *</label>
+              <select id="editDocCouncil" class="auth-form-select" onchange="updateProfilePreviewLive()">
+                <option value="Karnataka Medical Council" ${doc.stateCouncil === 'Karnataka Medical Council' ? 'selected' : ''}>Karnataka Medical Council</option>
+                <option value="Tamil Nadu Medical Council" ${doc.stateCouncil === 'Tamil Nadu Medical Council' ? 'selected' : ''}>Tamil Nadu Medical Council</option>
+                <option value="Delhi Medical Council" ${doc.stateCouncil === 'Delhi Medical Council' ? 'selected' : ''}>Delhi Medical Council</option>
+                <option value="Maharashtra Medical Council" ${doc.stateCouncil === 'Maharashtra Medical Council' ? 'selected' : ''}>Maharashtra Medical Council</option>
+                <option value="Andhra Pradesh Medical Council" ${doc.stateCouncil === 'Andhra Pradesh Medical Council' ? 'selected' : ''}>Andhra Pradesh Medical Council</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Department & Experience -->
+          <div class="form-grid-2col" style="margin-bottom: 1rem;">
+            <div>
+              <label class="auth-form-label" for="editDocDept">Medical Department / Specialty *</label>
+              <select id="editDocDept" class="auth-form-select" onchange="updateProfilePreviewLive()">
+                <option value="Cardiology" ${doc.department === 'Cardiology' ? 'selected' : ''}>Cardiology</option>
+                <option value="Pulmonology" ${doc.department === 'Pulmonology' ? 'selected' : ''}>Pulmonology</option>
+                <option value="General Medicine" ${doc.department === 'General Medicine' ? 'selected' : ''}>General Medicine</option>
+                <option value="Pediatrics" ${doc.department === 'Pediatrics' ? 'selected' : ''}>Pediatrics</option>
+                <option value="Obstetrics & Gynecology" ${doc.department === 'Obstetrics & Gynecology' ? 'selected' : ''}>Obstetrics & Gynecology</option>
+                <option value="Dermatology" ${doc.department === 'Dermatology' ? 'selected' : ''}>Dermatology</option>
+                <option value="Orthopedics" ${doc.department === 'Orthopedics' ? 'selected' : ''}>Orthopedics</option>
+              </select>
+            </div>
+            <div>
+              <label class="auth-form-label" for="editDocExp">Years of Clinical Experience *</label>
+              <input type="text" id="editDocExp" class="auth-form-input" value="${doc.experience}" oninput="updateProfilePreviewLive()" required placeholder="e.g. 14 Years">
+            </div>
+          </div>
+
+          <div class="auth-form-group">
+            <label class="auth-form-label" for="editDocHospital">Affiliated Hospital / Apex Tele-Triage Hub *</label>
+            <input type="text" id="editDocHospital" class="auth-form-input" value="${doc.hospital}" oninput="updateProfilePreviewLive()" required placeholder="e.g. Victoria Hospital & Apex Tele-Triage Hub, Bengaluru">
+          </div>
+
+          <!-- Duty Status & Response Time -->
+          <div class="form-grid-2col" style="margin-bottom: 1rem;">
+            <div>
+              <label class="auth-form-label" for="editDocDuty">Tele-Triage On-Duty Status *</label>
+              <select id="editDocDuty" class="auth-form-select" onchange="updateProfilePreviewLive()">
+                <option value="On-Duty Emergency Tele-Triage" ${(doc.dutyStatus || '').includes('On-Duty') ? 'selected' : ''}>🟢 On-Duty Emergency Tele-Triage</option>
+                <option value="Available for Rural Consults" ${(doc.dutyStatus || '').includes('Available') ? 'selected' : ''}>🟡 Available for Rural Consults</option>
+                <option value="Off-Duty / In Cath Lab" ${(doc.dutyStatus || '').includes('Off-Duty') ? 'selected' : ''}>🔴 Off-Duty / In Cath Lab</option>
+              </select>
+            </div>
+            <div>
+              <label class="auth-form-label" for="editDocResponse">Target Response Latency *</label>
+              <input type="text" id="editDocResponse" class="auth-form-input" value="${doc.avgResponseTime || '< 5 min'}" oninput="updateProfilePreviewLive()" placeholder="e.g. < 5 min">
+            </div>
+          </div>
+
+          <!-- Contact / Tele-Consult Relays -->
+          <div class="form-grid-2col" style="margin-bottom: 1rem;">
+            <div>
+              <label class="auth-form-label" for="editDocPhone">Tele-Consult Emergency Pager / Phone</label>
+              <input type="text" id="editDocPhone" class="auth-form-input" value="${doc.contactPhone || '+91 98450 11080'}">
+            </div>
+            <div>
+              <label class="auth-form-label" for="editDocEmail">Official Telemedicine Email</label>
+              <input type="email" id="editDocEmail" class="auth-form-input" value="${doc.contactEmail || 'r.verma@telemed.karnataka.gov.in'}">
+            </div>
+          </div>
+
+          <!-- Bio & Tele-Health Mission -->
+          <div class="auth-form-group">
+            <label class="auth-form-label" for="editDocBio">Clinical Bio & Rural Tele-Health Mission Statement</label>
+            <textarea id="editDocBio" class="textarea-styled" style="min-height: 85px;" oninput="updateProfilePreviewLive()">${doc.bio || 'Senior Interventional Cardiologist & Professor of Cardiology at Victoria Hospital. Passionate about rural telemedicine, reducing golden-hour referral latency for STEMI, and strengthening primary healthcare tele-triage capacity across taluk hospitals.'}</textarea>
+          </div>
+
+          <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
+            <button type="submit" class="btn btn-primary" style="flex: 2; padding: 0.75rem; font-size: 0.95rem;">
+              💾 Save & Update Doctor Profile
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="renderDoctorProfileEditor()" style="flex: 1;">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- RIGHT: Live Public Profile Card Preview -->
+      <div>
+        <div class="profile-preview-card">
+          <div style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">
+            Live Public Verification Card (Patient & Network View)
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1rem;">
+            <div class="avatar doctor" id="previewAvatar" style="width: 54px; height: 54px; font-size: 1.3rem;">${doc.avatar || 'RV'}</div>
+            <div>
+              <h3 id="previewDocName" style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); line-height: 1.2;">${doc.name}</h3>
+              <div id="previewDocDegrees" style="font-size: 0.8rem; color: var(--accent); font-weight: 600;">${doc.credentials}</div>
+              <div style="margin-top: 0.2rem;">
+                <span class="badge badge-verified" id="previewDocNmc">✓ NMC Verified: ${doc.nmcReg}</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.85rem; margin-bottom: 1rem; font-size: 0.82rem; line-height: 1.5;">
+            <div>🏥 <strong id="previewDocHospital">${doc.hospital}</strong></div>
+            <div>🩺 Department: <span class="badge badge-department" id="previewDocDept">${doc.department}</span></div>
+            <div>🏛️ State Council: <span id="previewDocCouncil">${doc.stateCouncil}</span></div>
+            <div>⏱️ Tele-Response: <span id="previewDocResponse">${doc.avgResponseTime || '< 5 min'}</span> (<span id="previewDocExp">${doc.experience}</span>)</div>
+            <div style="margin-top: 0.4rem; padding-top: 0.4rem; border-top: 1px solid #f1f5f9; color: var(--success); font-weight: 600;" id="previewDocDuty">
+              ● ${doc.dutyStatus || 'On-Duty Emergency Tele-Triage'}
+            </div>
+          </div>
+
+          <!-- Impact Metrics -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; text-align: center; margin-bottom: 1rem;">
+            <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.5rem;">
+              <div style="font-weight: 800; color: var(--primary); font-size: 1.1rem;">${doc.patientsHelped}</div>
+              <div style="font-size: 0.65rem; color: var(--text-muted);">Patients</div>
+            </div>
+            <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.5rem;">
+              <div style="font-weight: 800; color: var(--danger); font-size: 1.1rem;">${doc.emergencyResolved}</div>
+              <div style="font-size: 0.65rem; color: var(--text-muted);">Red Emergencies</div>
+            </div>
+            <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.5rem;">
+              <div style="font-weight: 800; color: var(--success); font-size: 1.1rem;">${doc.cmeCredits}</div>
+              <div style="font-size: 0.65rem; color: var(--text-muted);">CME Credits</div>
+            </div>
+          </div>
+
+          <div style="font-size: 0.8rem; color: var(--text-muted); font-style: italic; line-height: 1.5; margin-bottom: 1rem;" id="previewDocBio">
+            "${doc.bio || 'Senior Interventional Cardiologist committed to rural tele-triage.'}"
+          </div>
+
+          <button type="button" class="btn btn-secondary btn-full" onclick="openDoctorPublicProfile('doc-1')" style="font-size: 0.82rem;">
+            📜 View Official NMC Certificate
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function selectProfileAvatar(av) {
+  const avatarInput = document.getElementById('editDocAvatar');
+  if (avatarInput) avatarInput.value = av;
+  document.querySelectorAll('.avatar-choice-btn').forEach(btn => {
+    const isActive = btn.innerText.trim() === av;
+    btn.classList.toggle('active', isActive);
+    if (isActive) {
+      btn.style.background = 'var(--primary)';
+      btn.style.color = '#fff';
+    } else {
+      btn.style.background = '#f1f5f9';
+      btn.style.color = '#334155';
+    }
+  });
+  const previewAvatar = document.getElementById('previewAvatar');
+  if (previewAvatar) previewAvatar.innerText = av;
+}
+
+function updateProfilePreviewLive() {
+  const name = document.getElementById('editDocName')?.value || appState.doctorProfile.name;
+  const degrees = document.getElementById('editDocDegrees')?.value || appState.doctorProfile.credentials;
+  const nmc = document.getElementById('editDocNmc')?.value || appState.doctorProfile.nmcReg;
+  const council = document.getElementById('editDocCouncil')?.value || appState.doctorProfile.stateCouncil;
+  const dept = document.getElementById('editDocDept')?.value || appState.doctorProfile.department;
+  const exp = document.getElementById('editDocExp')?.value || appState.doctorProfile.experience;
+  const hospital = document.getElementById('editDocHospital')?.value || appState.doctorProfile.hospital;
+  const duty = document.getElementById('editDocDuty')?.value || appState.doctorProfile.dutyStatus;
+  const response = document.getElementById('editDocResponse')?.value || appState.doctorProfile.avgResponseTime;
+  const bio = document.getElementById('editDocBio')?.value || appState.doctorProfile.bio;
+
+  if (document.getElementById('previewDocName')) document.getElementById('previewDocName').innerText = name;
+  if (document.getElementById('previewDocDegrees')) document.getElementById('previewDocDegrees').innerText = degrees;
+  if (document.getElementById('previewDocNmc')) document.getElementById('previewDocNmc').innerText = `✓ NMC Verified: ${nmc}`;
+  if (document.getElementById('previewDocCouncil')) document.getElementById('previewDocCouncil').innerText = council;
+  if (document.getElementById('previewDocDept')) document.getElementById('previewDocDept').innerText = dept;
+  if (document.getElementById('previewDocExp')) document.getElementById('previewDocExp').innerText = exp;
+  if (document.getElementById('previewDocHospital')) document.getElementById('previewDocHospital').innerText = hospital;
+  if (document.getElementById('previewDocDuty')) document.getElementById('previewDocDuty').innerText = `● ${duty}`;
+  if (document.getElementById('previewDocResponse')) document.getElementById('previewDocResponse').innerText = response;
+  if (document.getElementById('previewDocBio')) document.getElementById('previewDocBio').innerText = `"${bio}"`;
+}
+
+function saveDoctorProfile(event) {
+  if (event) event.preventDefault();
+
+  const name = document.getElementById('editDocName')?.value.trim() || appState.doctorProfile.name;
+  const degrees = document.getElementById('editDocDegrees')?.value.trim() || appState.doctorProfile.credentials;
+  const nmcReg = document.getElementById('editDocNmc')?.value.trim() || appState.doctorProfile.nmcReg;
+  const stateCouncil = document.getElementById('editDocCouncil')?.value || appState.doctorProfile.stateCouncil;
+  const department = document.getElementById('editDocDept')?.value || appState.doctorProfile.department;
+  const hospital = document.getElementById('editDocHospital')?.value.trim() || appState.doctorProfile.hospital;
+  const experience = document.getElementById('editDocExp')?.value.trim() || appState.doctorProfile.experience;
+  const dutyStatus = document.getElementById('editDocDuty')?.value || appState.doctorProfile.dutyStatus;
+  const avgResponseTime = document.getElementById('editDocResponse')?.value.trim() || appState.doctorProfile.avgResponseTime;
+  const contactPhone = document.getElementById('editDocPhone')?.value.trim() || appState.doctorProfile.contactPhone;
+  const contactEmail = document.getElementById('editDocEmail')?.value.trim() || appState.doctorProfile.contactEmail;
+  const bio = document.getElementById('editDocBio')?.value.trim() || appState.doctorProfile.bio;
+  const avatar = document.getElementById('editDocAvatar')?.value || appState.doctorProfile.avatar;
+
+  appState.doctorProfile.name = name;
+  appState.doctorProfile.credentials = degrees;
+  appState.doctorProfile.nmcReg = nmcReg;
+  appState.doctorProfile.stateCouncil = stateCouncil;
+  appState.doctorProfile.department = department;
+  appState.doctorProfile.hospital = hospital;
+  appState.doctorProfile.experience = experience;
+  appState.doctorProfile.dutyStatus = dutyStatus;
+  appState.doctorProfile.avgResponseTime = avgResponseTime;
+  appState.doctorProfile.contactPhone = contactPhone;
+  appState.doctorProfile.contactEmail = contactEmail;
+  appState.doctorProfile.bio = bio;
+  appState.doctorProfile.avatar = avatar;
+
+  // Sync with availableDoctors list
+  const docInList = appState.availableDoctors.find(d => d.id === 'doc-1');
+  if (docInList) {
+    docInList.name = name;
+    docInList.degrees = degrees;
+    docInList.nmcId = nmcReg;
+    docInList.dept = department;
+    docInList.hospital = hospital;
+    docInList.status = dutyStatus;
+    docInList.response = avgResponseTime;
+    docInList.experience = experience;
+  }
+
+  // Update current user if role is doctor
+  if (appState.currentRole === 'doctor' || (appState.currentUser && appState.currentUser.role === 'doctor')) {
+    appState.currentUser.name = name;
+    appState.currentUser.avatar = avatar;
+    appState.currentUser.identifier = nmcReg;
+  }
+
+  saveState();
+  updateHeaderAuthUI();
+  renderDoctorProfileEditor();
+  renderDoctorDashboard();
+  renderDoctorDirectory();
+
+  showToast('✓ Doctor Profile updated successfully! Changes synchronized across the Rural Health Network.', 'success');
+}
+
+function resetDoctorProfileToDefaults() {
+  if (confirm('Reset doctor profile back to official default NMC registration details?')) {
+    appState.doctorProfile = JSON.parse(JSON.stringify(defaultState.doctorProfile));
+    saveState();
+    updateHeaderAuthUI();
+    renderDoctorProfileEditor();
+    renderDoctorDashboard();
+    renderDoctorDirectory();
+    showToast('Doctor profile reset to defaults.', 'info');
+  }
+}
+
+// ============================================================================
 // 12. Community & Department Feed (Feature 14)
 // ============================================================================
 
@@ -2018,12 +2560,14 @@ function showToast(message, type = 'info') {
 // ============================================================================
 
 window.addEventListener('DOMContentLoaded', () => {
+  updateHeaderAuthUI();
   renderTriageView();
   renderPatientHistory();
   renderDoctorDirectory();
   renderCommunityFeed();
   renderDoctorDashboard();
   renderCmeTracker();
+  renderDoctorProfileEditor();
   renderChatMessages();
 
   // Attach keyboard event for chat input
