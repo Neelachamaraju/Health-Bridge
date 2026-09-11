@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Health-Bridge (स्वास्थ्य सेतु / நலப் பாலம் / ಆರೋಗ್ಯ ಸೇತು)
 ### Rural Health Triage & Doctor-Patient Bridge System
 
@@ -51,33 +50,39 @@ Health-Bridge is a functional web prototype designed to bridge messy real-world 
     - Clinicians can review incoming cases, inspect OCR findings and symptoms, and choose to **Approve**, **Edit**, or **Override** the AI triage decision.
 12. **Confidence Flagging ("Needs Doctor Verification")**:
     - If handwriting is degraded or symptoms are ambiguous, confidence drops (e.g. 48%) and the case is flagged as *Needs Doctor Verification* rather than guessing.
+13. **Doctor Profile Management Page (`👤 My Profile & Credentials`)**:
+    - Dedicated page in Doctor section allowing doctors to view and continuously update their clinical identity.
+    - Editable fields: Full Name, Academic Qualifications, NMC Registration ID, State Medical Council, Specialization/Department, Affiliated Hospital / Apex Tele-Triage Hub, Years of Clinical Practice, On-Duty Tele-Triage Status, Guaranteed Response Latency, Emergency Pager/Email, Clinical Bio & Rural Tele-Health Mission, and Profile Avatar badge.
+    - Real-time side-by-side Public Verification Card preview and instant synchronization across the entire network.
 
 ---
 
 ### COMMUNITY & COMMUNICATION
-13. **In-App LinkedIn-Style Messaging**:
+14. **In-App LinkedIn-Style Messaging**:
     - 1-on-1 private messaging drawer between patients and matched verified doctors with clinical quick-reply chips and simulated instant responses.
-14. **Department Community & Health Feed**:
+15. **Department Community & Health Feed**:
     - Public discussion feed filtered by medical department where doctors post clinical alerts (e.g., post-harvest asthma, dengue guidelines) and answer patient queries with verified doctor badges.
 
 ---
 
 ### DOCTOR MOTIVATION SYSTEM
-15. **CME (Continuing Medical Education) Credit Tracker**:
+16. **CME (Continuing Medical Education) Credit Tracker**:
     - Live progress bar tracking credits toward the mandatory 30-credit requirement for Indian medical license renewal (+0.5 credits per case approved, +1.0 for emergency overrides).
     - Timestamped CME audit activity log.
-16. **Verified Public Impact Profile**:
+17. **Verified Public Impact Profile**:
     - Showcases real clinical audit metrics: Rural Patients Helped (428), Emergency Referrals Resolved (39), Average Response Time (4.2m), and a printable State Medical Council CME Certificate of Recognition.
 
 ---
 
-## 🚀 How to Run
+### AUTHENTICATION & LOGIN
+18. **Dual-Role Sign In / Login Modal**:
+    - Accessible via header pill (`🔑 Login / Switch`).
+    - Dedicated tabs for **🧑‍🌾 Patient / ASHA Worker** (ABHA ID, Village, Patient Name) and **🩺 Doctor / Specialist** (NMC Registration ID, State Council, Department).
+    - Includes 1-click instant demo logins for quick testing:
+      - *Ramesh Kumar (Patient / Mandya)*
+      - *Dr. Rajesh Verma (Cardiology / Victoria Hospital)*
+      - *Dr. Ananya Sen (Pulmonology / Safdarjung Hospital)*
+    - Persists session and updates user badge and role dynamically.
 
-1. Open `index.html` directly in any modern browser (Google Chrome, Microsoft Edge, Brave, Safari, Firefox).
-2. No build tools, Node.js, or external servers are required.
-3. Switch between **Patient/ASHA Mode** and **Doctor Mode** at the top right to explore both sides of the bridge!
-=======
-Take a look of "Health-Bridge" website demo
- which act as a universal bridge between human intent and complex system
-http://127.0.0.1:5500/index.html
->>>>>>> d64cc2ac8bfec2083b3297981cfa73562bee5efc
+---
+
