@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health-Bridge | Rural Health Triage & Doctor-Patient Bridge</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Top Emergency Broadcast Banner -->
+    <aside class="top-banner" aria-label="System status">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div class="top-banner-content">
+                <span class="pulse-dot"></span>
+                <span><strong>Apex Rural Tele-Triage Network Active</strong> • Connected to 48 District Hospitals &
+                    1,240
+                    Primary Health Centres</span>
+            </div>
+            <div style="font-size: 0.75rem; color: #a7f3d0;">
+                Emergency SOS Dispatch: <strong>108 Dial Available</strong>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Navigation Header -->
+    <header class="app-header">
+        <div class="container">
+            <div class="header-inner">
+                <!-- Logo & Title -->
+                <a href="#" class="logo-brand">
+                    <div class="logo-icon">🌉</div>
+                    <div class="brand-text">
+                        <h1>Health-Bridge <span
+                                style="font-size: 0.8rem; font-weight: 500; color: var(--primary);">स्वास्थ्य सेतु /
+                                நலப் பாலம் / ಆರೋಗ್ಯ ಸೇತು</span></h1>
+                        <p>Universal Bridge: Real-World Messy Inputs ➔ Structured Verified Medical Action</p>
+                    </div>
+                </a>
+
+                <!-- Role Persona Switcher (Patient vs Doctor) -->
+                <div class="role-switch-container" role="group" aria-label="User Persona Switcher">
+                    <button id="rolePatientBtn" class="role-btn active" onclick="switchRole('patient')">
+                        <span>🧑‍🌾</span> Patient / ASHA Mode
+                    </button>
+                    <button id="roleDoctorBtn" class="role-btn doctor" onclick="switchRole('doctor')">
+                        <span>🩺</span> Doctor Mode (Dr. Verma)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs (Dynamic per Role) -->
+    <nav class="nav-tabs-wrapper" aria-label="Main Sections">
+        <div class="container">
+            <!-- Patient Tabs -->
+            <ul id="patientNavTabs" class="nav-tabs">
+                <li class="nav-tab-item">
+                    <button class="nav-tab-btn active" data-tab="tabTriage" onclick="switchTab('tabTriage')">
+                        <span>🩺</span> AI Triage Studio
+                    </button>
+                </li>
+                <li class="nav-tab-item">
+                    <button class="nav-tab-btn" data-tab="tabHistory" onclick="switchTab('tabHistory')">
+                        <span>📜</span> Patient Health Record & Timeline
+                    </button>
+                </li>
+                <li class="nav-tab-item">
+                    <button class="nav-tab-btn" data-tab="tabDoctors" onclick="switchTab('tabDoctors')">
+                        <span>👨‍⚕️</span> Verified Doctors Network
+                    </button>
+                </li>
+                <li class="nav-tab-item">
+                    <button class="nav-tab-btn" data-tab="tabCommunity" onclick="switchTab('tabCommunity')">
+                        <span>🌐</span> Community Health Feed
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Doctor Tabs -->
+            <ul id="doctorNavTabs" class="nav-tabs" style="display: none;">
+                <li class="nav-tab-item">
+                    <button class="nav-tab-btn active" data-tab="tabDoctorDashboard"
+                        onclick="switchTab('tabDoctorDashboard')">
+                        <span>📋</span> Case Review Dashboard <span class="tab-badge">2 Pending</span>
+                    </button>
+                </li>
+                <li class="nav-tab-item">
+                    <button class="nav-tab-btn" data-tab="tabCmeTracker" onclick="switchTab('tabCmeTracker')">
+                        <span>🎓</span> CME Credit Tracker (24.5 / 30)
+                    </button>
+                </li>
+                <li class="nav-tab-item">
+                    <button class="nav-tab-btn" data-tab="tabCommunity" onclick="switchTab('tabCommunity')">
+                        <span>🌐</span> Department Advisory Feed
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Body Content -->
+    <main class="main-content">
+        <div class="container">
+
+            <!-- ================================================================= -->
+            <!-- TAB 1: AI Triage Studio (Patient / ASHA Worker View)               -->
+            <!-- ================================================================= -->
+            <div id="tabTriage" class="tab-pane active">
+
+                <!-- Multilingual Language Selector Bar -->
+                <div class="language-bar">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-main); margin-right: 0.5rem;">
+                        🗣 Select Intake & Narration Language:
+                    </span>
+                    <button class="lang-btn active" data-lang="en" onclick="setLanguage('en')">English</button>
+                    <button class="lang-btn" data-lang="hi" onclick="setLanguage('hi')">हिन्दी (Hindi)</button>
+                    <button class="lang-btn" data-lang="ta" onclick="setLanguage('ta')">தமிழ் (Tamil)</button>
+                    <button class="lang-btn" data-lang="kn" onclick="setLanguage('kn')">ಕನ್ನಡ (Kannada)</button>
+                    <span style="margin-left: auto; font-size: 0.75rem; color: var(--text-light);">
+                        ⚡ Powered by Gemini Multilingual Vision & Clinical Triage Rules
+                    </span>
+                </div>
+
+                <div class="triage-grid">
+                    <!-- LEFT COLUMN: Messy Inputs (Voice + Handwritten Rx) -->
+                    <section>
+
+                        <!-- 1. Voice Intake Card -->
+                        <article class="card">
+                            <header class="card-header">
+                                <div>
+                                    <h2 class="card-title"><span>🎙️</span> 1. Voice & Text Symptom Intake</h2>
+                                    <div class="card-subtitle">Accept voice descriptions in Indian regional languages;
+                                        transcribes and
+                                        extracts structured entities.</div>
+                                </div>
+                                <span class="badge badge-verified">✓ Web Speech API</span>
+                            </header>
+
+                            <!-- Interactive Voice Microphone -->
+                            <div id="voiceRecorderBox" class="voice-recorder-box">
+                                <button id="micButton" class="mic-button" onclick="toggleVoiceRecording()"
+                                    title="Click to Speak" aria-label="Start Voice Recording">
+                                    🎙
+                                </button>
+                                <div id="voiceSoundwave" class="soundwave">
+                                    <span class="soundwave-bar"></span>
+                                    <span class="soundwave-bar"></span>
+                                    <span class="soundwave-bar"></span>
+                                    <span class="soundwave-bar"></span>
+                                    <span class="soundwave-bar"></span>
+                                    <span class="soundwave-bar"></span>
+                                </div>
+                                <div id="recordStatusText"
+                                    style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">
+                                    Click microphone to start voice intake in English
+                                </div>
+                                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;">
+                                    Speak freely in your mother tongue — AI parses duration, severity, and anatomical
+                                    indicators.
+                                </div>
+                            </div>
+
+                            <!-- Quick Clinical Presets for Testing -->
+                            <div style="margin-top: 0.5rem;">
+                                <div
+                                    style="font-size: 0.75rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">
+                                    Quick One-Click Scenarios (Local Language Presets):
+                                </div>
+                                <div id="presetChipsContainer" class="preset-chips">
+                                    <!-- Injected via JavaScript -->
+                                </div>
+                            </div>
+
+                            <!-- Text Area / Live Transcript -->
+                            <div style="margin-top: 1rem;">
+                                <label for="voiceTranscriptInput"
+                                    style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 0.35rem;">
+                                    Transcribed Symptom Narrative:
+                                </label>
+                                <textarea id="voiceTranscriptInput" class="textarea-styled"
+                                    placeholder="Transcribed voice will appear here, or type patient symptoms directly..."></textarea>
+                                <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+                                    <button class="btn btn-primary"
+                                        onclick="handleTriageAnalysis(document.getElementById('voiceTranscriptInput').value)">
+                                        ⚡ Re-Analyze Symptoms
+                                    </button>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- 2. Prescription / Report Photo Reader Card -->
+                        <article class="card">
+                            <header class="card-header">
+                                <div>
+                                    <h2 class="card-title"><span>📄</span> 2. Prescription & Medical Report Reader</h2>
+                                    <div class="card-subtitle">Accepts photos of messy handwritten prescriptions;
+                                        extracts medicines,
+                                        dosages, and dates.</div>
+                                </div>
+                                <span class="badge badge-verified">✓ Gemini Vision OCR</span>
+                            </header>
+
+                            <!-- Dropzone for Photo Upload -->
+                            <div class="photo-dropzone" onclick="document.getElementById('fileUploadInput').click()">
+                                <div style="font-size: 2rem; margin-bottom: 0.25rem;">📸</div>
+                                <div style="font-weight: 600; font-size: 0.9rem;">Upload or Drop Prescription / Lab
+                                    Report Photo</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Supports
+                                    JPG, PNG, PDF
+                                    receipts, or handwritten clinic slips</div>
+                                <input type="file" id="fileUploadInput" accept="image/*" style="display: none;"
+                                    onchange="handleCustomPhotoUpload(event)">
+                            </div>
+
+                            <!-- Preloaded Realistic Sample Prescriptions -->
+                            <div style="margin-top: 1rem;">
+                                <div
+                                    style="font-size: 0.75rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">
+                                    Or Choose Built-in Realistic Clinic Samples:
+                                </div>
+                                <div class="sample-photo-picker">
+                                    <button class="sample-photo-btn active" data-sample="sample1"
+                                        onclick="selectPrescriptionSample('sample1')">
+                                        <strong>Sample 1: Rural PHC Rx</strong>
+                                        <span>Metformin + Aspirin + Atorva</span>
+                                    </button>
+                                    <button class="sample-photo-btn" data-sample="sample2"
+                                        onclick="selectPrescriptionSample('sample2')">
+                                        <strong>Sample 2: Messy Note</strong>
+                                        <span>Illegible (Low Confidence)</span>
+                                    </button>
+                                    <button class="sample-photo-btn" data-sample="sample3"
+                                        onclick="selectPrescriptionSample('sample3')">
+                                        <strong>Sample 3: Emergency ECG</strong>
+                                        <span>STEMI Elevated Troponin</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Prescription Preview Box -->
+                            <div id="prescriptionPreviewBox" class="preview-box">
+                                <!-- Injected via JavaScript -->
+                            </div>
+                        </article>
+
+                    </section>
+
+                    <!-- RIGHT COLUMN: Structured Verified Medical Action Card -->
+                    <section>
+                        <div style="position: sticky; top: 5rem;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">
+                                    Structured Clinical Action Card
+                                </h3>
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">
+                                    Auto-updated from triage engine
+                                </span>
+                            </div>
+
+                            <!-- Action Card Container (Green / Yellow / Red) -->
+                            <div id="actionCardContainer">
+                                <!-- Injected via renderActionCard() -->
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+            </div>
+
+            <!-- ================================================================= -->
+            <!-- TAB 2: Patient Health Profile & Multi-Visit Timeline               -->
+            <!-- ================================================================= -->
+            <div id="tabHistory" class="tab-pane">
+                <article class="card">
+                    <header class="card-header">
+                        <div>
+                            <h2 class="card-title"><span>👤</span> Patient Health Profile (ABHA Integrated)</h2>
+                            <div class="card-subtitle">Permanent rural medical identity with chronic conditions and
+                                active
+                                cross-checked medications.</div>
+                        </div>
+                        <button class="btn btn-secondary" onclick="openAddPastVisitModal()" style="font-size: 0.8rem;">
+                            + Add Past Visit Record
+                        </button>
+                    </header>
+
+                    <div id="patientProfileBox">
+                        <!-- Injected via renderPatientHistory() -->
+                    </div>
+                </article>
+
+                <!-- Multi-Visit Chronological Timeline -->
+                <article class="card">
+                    <header class="card-header">
+                        <div>
+                            <h2 class="card-title"><span>🗓️</span> Longitudinal Multi-Visit Health Timeline</h2>
+                            <div class="card-subtitle">Tracks past hospitals visited, clinical problems, prescriptions,
+                                and verified
+                                outcomes over time.</div>
+                        </div>
+                        <span class="badge badge-verified">✓ 3 Historical Encounters</span>
+                    </header>
+
+                    <div id="patientTimelineBox">
+                        <!-- Injected via renderPatientHistory() -->
+                    </div>
+                </article>
+            </div>
+
+            <!-- ================================================================= -->
+            <!-- TAB 3: Verified Doctor Network & Public Profiles                   -->
+            <!-- ================================================================= -->
+            <div id="tabDoctors" class="tab-pane">
+                <div style="margin-bottom: 1.25rem;">
+                    <h2 style="font-size: 1.25rem; font-weight: 700;">Verified Clinicians Network (National Medical
+                        Commission)
+                    </h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">
+                        Specialists on call for rural tele-triage across Cardiology, Pulmonology, General Medicine,
+                        Pediatrics, and
+                        OBGYN.
+                    </p>
+                </div>
+
+                <div id="doctorDirectoryContainer"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 1.25rem;">
+                    <!-- Injected via renderDoctorDirectory() -->
+                </div>
+            </div>
+
+            <!-- ================================================================= -->
+            <!-- TAB 4: Department Community & Health Feed                          -->
+            <!-- ================================================================= -->
+            <div id="tabCommunity" class="tab-pane">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+                    <div>
+                        <h2 style="font-size: 1.25rem; font-weight: 700;">Department Community & Health Advisory Feed
+                        </h2>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">
+                            Peer-reviewed interaction space between rural health workers, patients, and verified medical
+                            specialists.
+                        </p>
+                    </div>
+                    <button class="btn btn-primary" onclick="createCommunityPost()">
+                        + Post Query / Medical Advisory
+                    </button>
+                </div>
+
+                <!-- Filter Bar by Medical Department -->
+                <div class="feed-filter-bar">
+                    <button class="feed-filter-btn active" data-dept="All" onclick="filterFeed('All')">All
+                        Departments</button>
+                    <button class="feed-filter-btn" data-dept="Cardiology"
+                        onclick="filterFeed('Cardiology')">Cardiology</button>
+                    <button class="feed-filter-btn" data-dept="Pulmonology"
+                        onclick="filterFeed('Pulmonology')">Pulmonology</button>
+                    <button class="feed-filter-btn" data-dept="General Medicine"
+                        onclick="filterFeed('General Medicine')">General
+                        Medicine</button>
+                    <button class="feed-filter-btn" data-dept="Pediatrics"
+                        onclick="filterFeed('Pediatrics')">Pediatrics</button>
+                    <button class="feed-filter-btn" data-dept="Obstetrics & Gynecology"
+                        onclick="filterFeed('Obstetrics & Gynecology')">Maternal Health</button>
+                </div>
+
+                <div id="communityFeedContainer">
+                    <!-- Injected via renderCommunityFeed() -->
+                </div>
+            </div>
+
+            <!-- ================================================================= -->
+            <!-- TAB 5: Doctor Review Dashboard (Doctor Mode)                      -->
+            <!-- ================================================================= -->
+            <div id="tabDoctorDashboard" class="tab-pane">
+                <!-- CME Quick Badge for Doctor -->
+                <div
+                    style="background: #0f172a; color: white; padding: 0.85rem 1.25rem; border-radius: var(--radius-md); margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                    <div>
+                        <div style="font-weight: 700; font-size: 0.95rem;">Dr. Rajesh Verma • On-Duty Emergency
+                            Tele-Triage</div>
+                        <div style="font-size: 0.75rem; color: #94a3b8;">NMC-KA-84920 • Karnataka Medical Council •
+                            Victoria
+                            Hospital Tele-Hub</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="font-size: 0.8rem; text-align: right;">
+                            <div style="color: #cbd5e1; font-size: 0.7rem;">CME Cycle 2022-2026:</div>
+                            <strong id="cmeMiniProgressText" style="color: #34d399;">24.5 / 30 Credits</strong>
+                        </div>
+                        <div
+                            style="width: 80px; height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; overflow: hidden;">
+                            <div id="cmeMiniProgressFill" style="width: 81%; height: 100%; background: #34d399;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 360px 1fr; gap: 1.5rem;">
+                    <!-- Case Queue List -->
+                    <div>
+                        <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.75rem;">
+                            Assigned Tele-Triage Cases
+                        </h3>
+                        <div id="doctorCasesQueue">
+                            <!-- Injected via renderDoctorDashboard() -->
+                        </div>
+                    </div>
+
+                    <!-- Active Case Clinical Review Workspace -->
+                    <div>
+                        <div id="activeCaseDetailBox" class="card">
+                            <!-- Injected via displayCaseDetail() -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================================================================= -->
+            <!-- TAB 6: CME Credit Tracker & Doctor Impact Stats (Doctor Mode)     -->
+            <!-- ================================================================= -->
+            <div id="tabCmeTracker" class="tab-pane">
+                <div id="cmeTrackerContainer">
+                    <!-- Injected via renderCmeTracker() -->
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- ===================================================================== -->
+    <!-- FLOATING IN-APP MESSAGING DRAWER (Feature 13 - LinkedIn style)        -->
+    <!-- ===================================================================== -->
+    <aside id="chatDrawer" class="chat-drawer minimized" aria-label="Doctor Messaging">
+        <div class="chat-header" onclick="toggleChatDrawer()">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span class="pulse-dot"></span>
+                <div>
+                    <div id="chatDoctorNameHeader" style="font-weight: 700; font-size: 0.85rem;">Dr. Rajesh Verma</div>
+                    <div id="chatDoctorDeptHeader" style="font-size: 0.68rem; color: #94a3b8;">Cardiology • On-Duty
+                    </div>
+                </div>
+            </div>
+            <button style="background: none; border: none; color: white; font-size: 1rem; cursor: pointer;">⇅</button>
+        </div>
+
+        <!-- Message List -->
+        <div id="chatMessagesBox" class="chat-messages">
+            <!-- Injected via renderChatMessages() -->
+        </div>
+
+        <!-- Clinical Quick Reply Chips -->
+        <div
+            style="padding: 0.4rem 0.6rem; background: #ffffff; border-top: 1px solid #f1f5f9; display: flex; gap: 0.35rem; overflow-x: auto;">
+            <button class="btn btn-secondary" onclick="sendQuickChat('Do I take Aspirin right now?')"
+                style="padding: 0.2rem 0.5rem; font-size: 0.7rem; white-space: nowrap;">
+                Take Aspirin?
+            </button>
+            <button class="btn btn-secondary" onclick="sendQuickChat('The chest pain is still tight and radiating')"
+                style="padding: 0.2rem 0.5rem; font-size: 0.7rem; white-space: nowrap;">
+                Pain radiating
+            </button>
+            <button class="btn btn-secondary" onclick="sendQuickChat('Ambulance 108 contacted')"
+                style="padding: 0.2rem 0.5rem; font-size: 0.7rem; white-space: nowrap;">
+                108 contacted
+            </button>
+        </div>
+
+        <!-- Input Row -->
+        <div class="chat-input-row">
+            <input type="text" id="chatInputText" placeholder="Message doctor directly..."
+                style="flex: 1; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.4rem 0.6rem; font-size: 0.82rem;">
+            <button class="btn btn-primary" onclick="sendChatMessage()"
+                style="padding: 0.4rem 0.85rem; font-size: 0.82rem;">Send</button>
+        </div>
+    </aside>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL: EMERGENCY SOS TELE-TRIAGE ROOM (Feature 9)                    -->
+    <!-- ===================================================================== -->
+    <div id="emergencySosModal" class="modal-backdrop" role="dialog" aria-modal="true">
+        <div class="modal-dialog" style="max-width: 680px;">
+            <div class="modal-header" style="background: #7f1d1d; color: white;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 1.5rem;">🚨</span>
+                    <div>
+                        <h3 style="font-size: 1.15rem; font-weight: 700;">EMERGENCY TELE-TRIAGE CONNECT</h3>
+                        <div style="font-size: 0.75rem; color: #fca5a5;">High-Priority Red Triage • Live Specialist
+                            Hand-off</div>
+                    </div>
+                </div>
+                <button onclick="closeEmergencySosModal()"
+                    style="background: none; border: none; color: white; font-size: 1.25rem; cursor: pointer;">✕</button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Live Patient Telemetry Relays -->
+                <div
+                    style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; background: #0f172a; color: white; padding: 1rem; border-radius: var(--radius-md); text-align: center; margin-bottom: 1rem;">
+                    <div>
+                        <div style="font-size: 0.7rem; color: #94a3b8;">PULSE / HEART RATE</div>
+                        <div id="sosHeartRate" style="font-size: 1.75rem; font-weight: 800; color: #f87171;">108</div>
+                        <div style="font-size: 0.65rem; color: #ef4444;">Sinus Tachycardia</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.7rem; color: #94a3b8;">BLOOD PRESSURE</div>
+                        <div id="sosBloodPressure" style="font-size: 1.75rem; font-weight: 800; color: #fbbf24;">154/96
+                        </div>
+                        <div style="font-size: 0.65rem; color: #f59e0b;">Stage 2 HTN</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.7rem; color: #94a3b8;">SpO2 OXYGEN</div>
+                        <div id="sosSpO2" style="font-size: 1.75rem; font-weight: 800; color: #38bdf8;">93%</div>
+                        <div style="font-size: 0.65rem; color: #38bdf8;">Supplemental O2 Recommended</div>
+                    </div>
+                </div>
+
+                <!-- Assigned Doctor Video Call Simulation -->
+                <div
+                    style="border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; background: #f8fafc; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem;">
+                    <div class="avatar doctor" style="width: 56px; height: 56px; font-size: 1.3rem;">RV</div>
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 0.4rem;">
+                            <strong style="font-size: 1rem;">Dr. Rajesh Verma</strong>
+                            <span class="badge badge-verified">✓ On-Call Cardiologist</span>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">Victoria Hospital & Apex Tele-Triage
+                            Center</div>
+                        <div style="font-size: 0.75rem; color: var(--success); font-weight: 600; margin-top: 0.2rem;">
+                            ● Tele-consult audio-video channel established
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ambulance Status Section -->
+                <div id="ambulanceDispatchStatus" style="margin-bottom: 1rem;">
+                    <button class="btn btn-danger btn-full" onclick="dispatch108Ambulance()"
+                        style="font-size: 1rem; padding: 0.85rem;">
+                        🚑 ONE-CLICK SOS: DISPATCH 108 AMBULANCE (GPS RELAY)
+                    </button>
+                </div>
+
+                <div
+                    style="font-size: 0.8rem; color: var(--text-muted); background: #f1f5f9; padding: 0.75rem; border-radius: var(--radius-sm);">
+                    <strong>First Aid Protocol:</strong> Keep patient propped up at 45° angle. Loosen tight clothing
+                    around neck
+                    and chest. Administer chewable Aspirin 300mg unless active gastrointestinal bleeding is suspected.
+                    Keep AED /
+                    defibrillator on standby.
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEmergencySosModal()">Minimize Call</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL: JSON ACTION CARD VIEWER (Feature 4 - JSON Schema)              -->
+    <!-- ===================================================================== -->
+    <div id="jsonViewerModal" class="modal-backdrop" role="dialog" aria-modal="true">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <div style="font-weight: 700; font-size: 1.05rem;">Structured Action Card (Interoperable FHIR / JSON
+                    Schema)
+                </div>
+                <button onclick="closeJsonModal()"
+                    style="background: none; border: none; font-size: 1.25rem; cursor: pointer;">✕</button>
+            </div>
+            <div class="modal-body">
+                <pre id="jsonCodeViewer" class="json-viewer"></pre>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary"
+                    onclick="navigator.clipboard.writeText(document.getElementById('jsonCodeViewer').innerText); showToast('JSON copied to clipboard', 'info');">
+                    📋 Copy JSON
+                </button>
+                <button class="btn btn-primary" onclick="closeJsonModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL: DOCTOR PUBLIC IMPACT PROFILE & CME CERTIFICATE (Feature 16)   -->
+    <!-- ===================================================================== -->
+    <div id="doctorProfileModal" class="modal-backdrop" role="dialog" aria-modal="true">
+        <div class="modal-dialog" style="max-width: 620px;">
+            <div class="modal-header">
+                <div style="font-weight: 700; font-size: 1.05rem;">Verified Clinician Public Impact Profile</div>
+                <button onclick="document.getElementById('doctorProfileModal').classList.remove('open')"
+                    style="background: none; border: none; font-size: 1.25rem; cursor: pointer;">✕</button>
+            </div>
+            <div id="doctorProfileModalBody" class="modal-body">
+                <!-- Injected via openDoctorPublicProfile() -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary"
+                    onclick="document.getElementById('doctorProfileModal').classList.remove('open')">Close</button>
+                <button class="btn btn-primary" onclick="window.print()">🖨️ Print CME Certificate</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+    <!-- Scripts -->
+    <script src="app.js"></script>
+</body>
+
+</html>
