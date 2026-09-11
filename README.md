@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Health-Bridge (स्वास्थ्य सेतु / நலப் பாலம் / ಆರೋಗ್ಯ ಸೇತು)
 ### Rural Health Triage & Doctor-Patient Bridge System
 
@@ -75,3 +76,8 @@ Health-Bridge is a functional web prototype designed to bridge messy real-world 
 1. Open `index.html` directly in any modern browser (Google Chrome, Microsoft Edge, Brave, Safari, Firefox).
 2. No build tools, Node.js, or external servers are required.
 3. Switch between **Patient/ASHA Mode** and **Doctor Mode** at the top right to explore both sides of the bridge!
+=======
+Take a look of "Health-Bridge" website demo
+ which act as a universal bridge between human intent and complex system
+http://127.0.0.1:5500/index.html
+>>>>>>> d64cc2ac8bfec2083b3297981cfa73562bee5efc
